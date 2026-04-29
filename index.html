@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ilmiy Kalkulyator — Mubinabegim</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#fdf4f7;--bg2:#fff0f5;--surface:#ffffff;--card:#ffffff;
+      --border:#f0d0dd;--border2:#e8b8cc;
+      --text:#5a2840;--text2:#9a6878;--text3:#c4a0b0;
+      --accent:#e8829f;--accent2:#c2688a;--accent3:#d4537e;
+      --btn-num:#ffffff;--btn-num-t:#7a4060;
+      --btn-fn:#faedf2;--btn-fn-t:#b05070;
+      --btn-op:#fce4ee;--btn-op-t:#c2688a;
+      --btn-eq:#e8829f;--btn-eq-t:#ffffff;
+      --btn-mem:#fdf0f5;--btn-mem-t:#c06080;
+      --nav:#ffffff;--nav-border:#f5dce6;
+      --disp:#fff0f5;--disp-num:#c2688a;--disp-sub:#d4a0b5;
+      --shadow:rgba(200,100,140,0.12);
+      --clr-bg:#fde8ec;--clr-t:#c04060;--clr-b:#f5c0cc;
+      --del-bg:#fdf0e0;--del-t:#c07820;--del-b:#f0d898;
+    }
+    [data-theme="dark"] {
+      --bg:#1a0d13;--bg2:#220f18;--surface:#2a1420;--card:#2a1420;
+      --border:#4a2035;--border2:#6a3050;
+      --text:#f5d0de;--text2:#c8889a;--text3:#8a5068;
+      --accent:#e8829f;--accent2:#f0a0b8;--accent3:#e87098;
+      --btn-num:#321828;--btn-num-t:#f0c8d8;
+      --btn-fn:#3a1e2c;--btn-fn-t:#e0a0b8;
+      --btn-op:#4a2038;--btn-op-t:#f0a0c0;
+      --btn-eq:#c85888;--btn-eq-t:#ffffff;
+      --btn-mem:#2e1a26;--btn-mem-t:#d890a8;
+      --nav:#220f18;--nav-border:#4a2035;
+      --disp:#220f18;--disp-num:#f0a0c0;--disp-sub:#9a6070;
+      --shadow:rgba(0,0,0,0.45);
+      --clr-bg:#3a1020;--clr-t:#f08090;--clr-b:#5a2030;
+      --del-bg:#2e1e08;--del-t:#f0b860;--del-b:#5a3810;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Quicksand',sans-serif;min-height:100vh;transition:background .35s,color .35s;}
+
+    /* NAV */
+    nav{background:var(--nav);border-bottom:1.5px solid var(--nav-border);padding:0 1.5rem;height:50px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 18px var(--shadow);transition:background .35s,border-color .35s;}
+    .nav-brand{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--accent2);display:flex;align-items:center;gap:7px;}
+    .nav-links{display:flex;gap:4px;}
+    .nav-link{padding:6px 18px;border-radius:20px;font-size:.875rem;font-weight:600;cursor:pointer;border:1.5px solid transparent;background:transparent;color:var(--text2);transition:all .2s;font-family:'Quicksand',sans-serif;}
+    .nav-link:hover{color:var(--accent2);background:var(--bg2);}
+    .nav-link.active{background:var(--bg2);color:var(--accent2);border-color:var(--border);}
+    .nav-right{display:flex;align-items:center;gap:8px;}
+    .theme-lbl{font-size:.75rem;color:var(--text3);font-weight:600;}
+    .toggle-wrap{width:52px;height:28px;border-radius:14px;border:1.5px solid var(--border2);background:var(--bg2);cursor:pointer;position:relative;transition:background .3s;}
+    .toggle-knob{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--accent);transition:transform .3s;display:flex;align-items:center;justify-content:center;font-size:12px;}
+    [data-theme="dark"] .toggle-knob{transform:translateX(24px);}
+
+    /* PAGES */
+    .page{display:none;}
+    .page.active{display:block;}
+
+    /* CALC PAGE */
+    .calc-page{display:flex;align-items:center;justify-content:center;padding:clamp(0.5rem,1.5vh,1.5rem) 1rem;min-height:calc(100vh - 50px);}
+    .calc-wrap{width:100%;max-width:400px;}
+    .calc{background:var(--surface);border-radius:20px;border:1.5px solid var(--border);box-shadow:0 16px 48px var(--shadow);overflow:hidden;transition:background .35s,border-color .35s;}
+
+    .display{background:var(--disp);padding:clamp(0.6rem,1.2vh,1.4rem) 1.2rem clamp(0.5rem,0.9vh,1rem);min-height:clamp(80px,12vh,112px);display:flex;flex-direction:column;justify-content:flex-end;position:relative;border-bottom:1px solid var(--border);transition:background .35s;}
+    .mode-badge{position:absolute;top:8px;right:12px;font-size:.62rem;font-weight:700;color:var(--accent2);background:var(--bg2);border:1px solid var(--border);padding:2px 8px;border-radius:20px;cursor:pointer;letter-spacing:.08em;transition:background .15s;}
+    .mem-ind{position:absolute;top:8px;left:12px;font-size:.62rem;font-weight:700;color:var(--accent);opacity:0;transition:opacity .3s;}
+    .mem-ind.on{opacity:1;}
+    .d-hist{font-size:.68rem;color:var(--text3);min-height:1em;margin-bottom:1px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .d-expr{font-size:.82rem;color:var(--text2);min-height:1.2em;margin-bottom:3px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .d-main{font-size:clamp(1.6rem,4vh,2.4rem);font-weight:700;color:var(--disp-num);line-height:1;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .2s;}
+    .d-main.err{color:#e05070;font-size:1.1rem;}
+
+    .buttons{padding:clamp(6px,1vh,12px);display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(4px,0.7vh,7px);}
+    .btn{height:clamp(36px,5.5vh,50px);border-radius:10px;border:1.5px solid var(--border);font-family:'Quicksand',sans-serif;font-size:clamp(.72rem,1.4vh,.875rem);font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;user-select:none;}
+    .btn:active{transform:scale(0.93);}
+    .b-num{background:var(--btn-num);color:var(--btn-num-t);}
+    .b-num:hover{background:var(--bg2);}
+    .b-fn{background:var(--btn-fn);color:var(--btn-fn-t);font-size:.78rem;}
+    .b-fn:hover{border-color:var(--border2);}
+    .b-op{background:var(--btn-op);color:var(--btn-op-t);font-size:1rem;}
+    .b-op:hover{border-color:var(--accent);}
+    .b-eq{background:var(--btn-eq);color:var(--btn-eq-t);font-size:1.1rem;border-color:transparent;}
+    .b-eq:hover{filter:brightness(1.08);}
+    .b-mem{background:var(--btn-mem);color:var(--btn-mem-t);font-size:.72rem;}
+    .b-clr{background:var(--clr-bg);color:var(--clr-t);border-color:var(--clr-b);}
+    .b-del{background:var(--del-bg);color:var(--del-t);border-color:var(--del-b);}
+    .b-zero{grid-column:span 2;}
+
+    .footer-bar{display:flex;align-items:center;justify-content:space-between;padding:4px 14px 8px;}
+    .hist-toggle{font-size:.7rem;color:var(--text3);cursor:pointer;font-weight:600;transition:color .15s;}
+    .hist-toggle:hover{color:var(--text2);}
+    .computing{font-size:.68rem;color:var(--accent);display:none;}
+    .computing.on{display:block;}
+    .hist-panel{max-height:0;overflow:hidden;transition:max-height .3s;border-top:1px solid var(--border);}
+    .hist-panel.open{max-height:180px;overflow-y:auto;}
+    .hist-inner{padding:10px 14px;}
+    .hist-title{font-size:.65rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;font-weight:700;}
+    .hist-item{display:flex;justify-content:space-between;align-items:center;padding:5px 8px;border-radius:8px;cursor:pointer;transition:background .1s;}
+    .hist-item:hover{background:var(--bg2);}
+    .h-e{font-size:.72rem;color:var(--text2);}
+    .h-r{font-size:.82rem;color:var(--accent2);font-weight:700;}
+
+    /* ABOUT PAGE */
+    .about-page{max-width:780px;margin:0 auto;padding:2.5rem 1.5rem 4rem;}
+    .about-hero{text-align:center;margin-bottom:2rem;padding:2.5rem 2rem;background:var(--surface);border-radius:24px;border:1.5px solid var(--border);box-shadow:0 8px 32px var(--shadow);}
+    .about-avatar{width:82px;height:82px;border-radius:50%;background:var(--bg2);border:3px solid var(--accent);margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;font-size:2.2rem;}
+    .about-name{font-family:'Playfair Display',serif;font-size:1.65rem;color:var(--accent2);margin-bottom:5px;}
+    .about-uni{font-size:.9rem;color:var(--text2);font-weight:600;margin-bottom:8px;}
+    .about-topic{font-size:.84rem;color:var(--text3);font-style:italic;max-width:500px;margin:0 auto;line-height:1.65;}
+    .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:1rem;}
+    @media(max-width:560px){.about-grid{grid-template-columns:1fr;}.a-wide{grid-column:span 1!important;}}
+    .a-card{background:var(--surface);border-radius:18px;border:1.5px solid var(--border);padding:1.4rem 1.5rem;box-shadow:0 4px 18px var(--shadow);transition:background .35s;}
+    .a-wide{grid-column:span 2;}
+    .c-icon{font-size:1.5rem;margin-bottom:8px;}
+    .c-title{font-size:.78rem;font-weight:700;color:var(--accent2);letter-spacing:.09em;text-transform:uppercase;margin-bottom:10px;}
+    .c-body{font-size:.875rem;color:var(--text2);line-height:1.7;}
+    .fn-list{list-style:none;}
+    .fn-list li{display:flex;align-items:flex-start;gap:8px;padding:5px 0;font-size:.83rem;color:var(--text2);border-bottom:1px solid var(--border);}
+    .fn-list li:last-child{border-bottom:none;}
+    .tag{background:var(--bg2);color:var(--accent2);border:1px solid var(--border);border-radius:6px;padding:1px 7px;font-size:.7rem;font-weight:700;white-space:nowrap;flex-shrink:0;}
+    .tech-badge{display:inline-flex;align-items:center;gap:5px;background:var(--bg2);color:var(--accent2);border:1.5px solid var(--border);border-radius:20px;padding:4px 12px;font-size:.78rem;font-weight:700;margin:3px;}
+    code{background:var(--bg2);padding:1px 6px;border-radius:5px;font-size:.8rem;color:var(--accent2);}
+    ::-webkit-scrollbar{width:4px;}
+    ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">🌸 Kalkulyator</div>
+  <div class="nav-links">
+    <button class="nav-link active" id="nav-calc" onclick="showPage('calc')">Kalkulyator</button>
+    <button class="nav-link" id="nav-about" onclick="showPage('about')">Loyiha haqida</button>
+  </div>
+  <div class="nav-right">
+    <span class="theme-lbl" id="themeLbl">Kunduz</span>
+    <div class="toggle-wrap" onclick="toggleTheme()">
+      <div class="toggle-knob" id="themeKnob">☀️</div>
+    </div>
+  </div>
+</nav>
+
+<!-- CALCULATOR PAGE -->
+<div class="page active" id="page-calc">
+  <div class="calc-page">
+    <div class="calc-wrap">
+      <div class="calc">
+        <div class="display">
+          <span class="mem-ind" id="memInd">M</span>
+          <span class="mode-badge" id="modeBadge" onclick="toggleMode()">DARAJA</span>
+          <div class="d-hist" id="dHist"></div>
+          <div class="d-expr" id="dExpr"></div>
+          <div class="d-main" id="dMain">0</div>
+        </div>
+        <div class="buttons">
+          <button class="btn b-mem" onclick="mClear()">MC</button>
+          <button class="btn b-mem" onclick="mRecall()">MR</button>
+          <button class="btn b-mem" onclick="mAdd()">M+</button>
+          <button class="btn b-mem" onclick="mSub()">M−</button>
+          <button class="btn b-mem" onclick="mStore()">MS</button>
+          <button class="btn b-fn" onclick="fn('sin')">sin</button>
+          <button class="btn b-fn" onclick="fn('cos')">cos</button>
+          <button class="btn b-fn" onclick="fn('tan')">tan</button>
+          <button class="btn b-fn" onclick="fn('sqrt')">√x</button>
+          <button class="btn b-fn" onclick="fn('pow2')">x²</button>
+          <button class="btn b-fn" onclick="fn('log')">log</button>
+          <button class="btn b-fn" onclick="fn('ln')">ln</button>
+          <button class="btn b-fn" onclick="fn('fact')">n!</button>
+          <button class="btn b-fn" onclick="fn('inv')">1/x</button>
+          <button class="btn b-fn" onclick="fn('pow3')">x³</button>
+          <button class="btn b-fn" onclick="ins('π')">π</button>
+          <button class="btn b-fn" onclick="ins('e')">e</button>
+          <button class="btn b-fn" onclick="fn('percent')">%</button>
+          <button class="btn b-del" onclick="del()">⌫</button>
+          <button class="btn b-clr" onclick="ac()">AC</button>
+          <button class="btn b-fn" onclick="ap('(')">(</button>
+          <button class="btn b-fn" onclick="ap(')')">)</button>
+          <button class="btn b-fn" onclick="ap('^')">xʸ</button>
+          <button class="btn b-op" onclick="ap('÷')">÷</button>
+          <button class="btn b-op" onclick="ap('×')">×</button>
+          <button class="btn b-num" onclick="ap('7')">7</button>
+          <button class="btn b-num" onclick="ap('8')">8</button>
+          <button class="btn b-num" onclick="ap('9')">9</button>
+          <button class="btn b-op" onclick="ap('−')">−</button>
+          <button class="btn b-op" onclick="ap('+')">+</button>
+          <button class="btn b-num" onclick="ap('4')">4</button>
+          <button class="btn b-num" onclick="ap('5')">5</button>
+          <button class="btn b-num" onclick="ap('6')">6</button>
+          <button class="btn b-fn" onclick="ap('E')">EXP</button>
+          <button class="btn b-fn" onclick="sign()">±</button>
+          <button class="btn b-num" onclick="ap('1')">1</button>
+          <button class="btn b-num" onclick="ap('2')">2</button>
+          <button class="btn b-num" onclick="ap('3')">3</button>
+          <button class="btn b-eq" style="grid-row:span 2" onclick="calc()">=</button>
+          <button class="btn b-num b-zero" onclick="ap('0')">0</button>
+          <button class="btn b-num" onclick="ap('.')">.</button>
+        </div>
+        <div class="footer-bar">
+          <span class="hist-toggle" onclick="toggleHist()">▾ tarix</span>
+          <span class="computing" id="computing">hisoblanmoqda...</span>
+        </div>
+        <div class="hist-panel" id="histPanel">
+          <div class="hist-inner">
+            <div class="hist-title">So'nggi hisob-kitoblar</div>
+            <div id="histList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT PAGE -->
+<div class="page" id="page-about">
+  <div class="about-page">
+
+    <div class="about-hero">
+      <div class="about-avatar">🌸</div>
+      <div class="about-name">Mukhammadzoda Mubinabegim</div>
+      <div class="about-uni">Andijon Davlat Pedagogika Instituti</div>
+      <div class="about-topic">
+        "PHP da matematik misollarni yechish mavzusini o'qitishda<br>
+        shaxsga yo'naltirilgan ta'lim metodlaridan foydalanish"
+      </div>
+    </div>
+
+    <div class="about-grid">
+
+      <div class="a-card a-wide">
+        <div class="c-icon">📖</div>
+        <div class="c-title">Loyiha haqida</div>
+        <div class="c-body">
+          Ushbu ilmiy kalkulyator PHP dasturlash tilida yaratilgan bo'lib, matematika fanini o'qitishda shaxsga yo'naltirilgan ta'lim metodlarini qo'llashga mo'ljallangan. Dastur talabalar va o'quvchilarga murakkab matematik amallarni tezda va aniq bajarishga yordam beradi. Frontend HTML, CSS va JavaScript yordamida, backend esa PHP orqali amalga oshirilgan. Kunduzgi va tungi ko'rinish, hisoblash tarixi va xotira funksiyalari ham qo'shilgan.
+        </div>
+      </div>
+
+      <div class="a-card">
+        <div class="c-icon">⚙️</div>
+        <div class="c-title">PHP Funksiyalari</div>
+        <ul class="fn-list">
+          <li><span class="tag">safe_eval()</span> Matematik ifodani xavfsiz hisoblash</li>
+          <li><span class="tag">sin / cos / tan</span> Trigonometrik funksiyalar</li>
+          <li><span class="tag">log10()</span> O'nlik logarifm (log)</li>
+          <li><span class="tag">log()</span> Natural logarifm (ln)</li>
+          <li><span class="tag">sqrt()</span> Kvadrat ildiz</li>
+          <li><span class="tag">pow()</span> Daraja hisoblash (x², x³, xʸ)</li>
+          <li><span class="tag">factorial</span> Faktorial hisoblash (n!)</li>
+          <li><span class="tag">deg2rad()</span> Darajani radianga aylantirish</li>
+          <li><span class="tag">abs()</span> Mutlaq qiymat</li>
+          <li><span class="tag">calculate_action()</span> Amallarni boshqaruvchi funksiya</li>
+        </ul>
+      </div>
+
+      <div class="a-card">
+        <div class="c-icon">🧮</div>
+        <div class="c-title">Kalkulyator imkoniyatlari</div>
+        <ul class="fn-list">
+          <li><span class="tag">Arifmetika</span> Qo'shish, ayirish, ko'paytirish, bo'lish, qavslar</li>
+          <li><span class="tag">Trigon.</span> sin, cos, tan — daraja yoki radian rejimida</li>
+          <li><span class="tag">Logarifm</span> log₁₀ va tabiiy logarifm ln</li>
+          <li><span class="tag">Darajalar</span> x², x³, ixtiyoriy daraja xʸ, kvadrat ildiz √x</li>
+          <li><span class="tag">Maxsus</span> π, e, n!, 1/x, foiz (%)</li>
+          <li><span class="tag">Xotira</span> MS, MR, M+, M−, MC</li>
+          <li><span class="tag">Tarix</span> So'nggi 20 ta hisob-kitob</li>
+          <li><span class="tag">Klaviatura</span> To'liq klaviatura qo'llab-quvvatlash</li>
+          <li><span class="tag">Tema</span> Kunduzgi va tungi ko'rinish</li>
+          <li><span class="tag">Fallback</span> PHP yo'q bo'lsa JS da hisoblash</li>
+        </ul>
+      </div>
+
+      <div class="a-card a-wide">
+        <div class="c-icon">💻</div>
+        <div class="c-title">Foydalanilgan texnologiyalar</div>
+        <div style="margin-bottom:12px;">
+          <span class="tech-badge">PHP 8</span>
+          <span class="tech-badge">HTML5</span>
+          <span class="tech-badge">CSS3</span>
+          <span class="tech-badge">JavaScript ES6</span>
+          <span class="tech-badge">REST API (JSON)</span>
+          <span class="tech-badge">Google Fonts</span>
+          <span class="tech-badge">CSS Variables</span>
+        </div>
+        <div class="c-body">
+          Backend <strong>calculator.php</strong> POST so'rovlarni qabul qilib, JSON formatida javob qaytaradi. Frontend JavaScript orqali real vaqtda serverga murojaat qiladi. Agar PHP server mavjud bo'lmasa, <code>jsEval()</code> va <code>jsFn()</code> funksiyalari zaxira sifatida ishlaydi.
+        </div>
+      </div>
+
+      <div class="a-card a-wide">
+        <div class="c-icon">🏗️</div>
+        <div class="c-title">Dastur arxitekturasi</div>
+        <div class="c-body">
+          <strong style="color:var(--accent2);">index.html</strong> — Foydalanuvchi interfeysi: navigatsiya paneli, kalkulyator tugmalari, displey, tarix paneli va kunduz/tun rejim almashtirgichi. Barcha UI logikasi shu faylda.<br><br>
+          <strong style="color:var(--accent2);">calculator.php</strong> — Server tomoni: matematik ifodalarni <code>eval()</code> orqali xavfsiz hisoblaydi, trigonometrik, logarifmik va boshqa funksiyalarni qayta ishlaydi, xatolarni ushlab oladi va JSON javob yuboradi. Faqat ruxsat etilgan belgilar qabul qilinadi — xavfsizlik ta'minlangan.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  let expr='',memory=0,hasMem=false,hist=[],angleMode='deg',justCalc=false;
+  const dMain=document.getElementById('dMain'),dExpr=document.getElementById('dExpr'),dHist=document.getElementById('dHist'),computing=document.getElementById('computing');
+
+  function toggleTheme(){
+    const dark=document.documentElement.getAttribute('data-theme')==='dark';
+    document.documentElement.setAttribute('data-theme',dark?'light':'dark');
+    document.getElementById('themeKnob').textContent=dark?'☀️':'🌙';
+    document.getElementById('themeLbl').textContent=dark?'Kunduz':'Tun';
+  }
+  function showPage(n){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+    document.getElementById('page-'+n).classList.add('active');
+    document.getElementById('nav-'+n).classList.add('active');
+  }
+  function toggleMode(){angleMode=angleMode==='deg'?'rad':'deg';document.getElementById('modeBadge').textContent=angleMode==='deg'?'DARAJA':'RADIAN';}
+  function setMain(v,e){dMain.textContent=v;dMain.className='d-main'+(e?' err':'');}
+  function ap(ch){if(justCalc&&'0123456789.'.includes(ch))expr='';justCalc=false;expr+=ch;dExpr.textContent=expr;setMain(expr.slice(-22)||'0');}
+  function ins(ch){justCalc=false;expr+=ch;dExpr.textContent=expr;setMain(expr.slice(-22));}
+  function del(){justCalc=false;expr=expr.slice(0,-1);dExpr.textContent=expr;setMain(expr.slice(-22)||'0');}
+  function ac(){expr='';justCalc=false;dExpr.textContent='';dHist.textContent='';setMain('0');}
+  function sign(){if(!expr)return;expr=expr.startsWith('-')?expr.slice(1):'-'+expr;dExpr.textContent=expr;setMain(expr.slice(-22));}
+
+  function jsEval(e){
+    try{
+      const r=angleMode==='deg'?(Math.PI/180):1;
+      let s=e.replace(/÷/g,'/').replace(/×/g,'*').replace(/−/g,'-')
+              .replace(/π/g,String(Math.PI)).replace(/\^/g,'**')
+              .replace(/sin\(/g,`Math.sin(${r}*`)
+              .replace(/cos\(/g,`Math.cos(${r}*`)
+              .replace(/tan\(/g,`Math.tan(${r}*`)
+              .replace(/sqrt\(/g,'Math.sqrt(')
+              .replace(/log\(/g,'Math.log10(')
+              .replace(/ln\(/g,'Math.log(');
+      const res=Function('"use strict";return('+s+')')();
+      return isFinite(res)?{result:res}:{error:"Aniqlanmagan natija"};
+    }catch{return{error:"Sintaksis xatosi"};}
+  }
+  function jsFn(a,val){
+    const v=parseFloat(val),r=angleMode==='deg'?Math.PI/180:1;
+    if(a==='sin')return{result:Math.sin(v*r)};
+    if(a==='cos')return{result:Math.cos(v*r)};
+    if(a==='tan')return{result:Math.tan(v*r)};
+    if(a==='sqrt')return v>=0?{result:Math.sqrt(v)}:{error:"Manfiy son ildizi yo'q"};
+    if(a==='pow2')return{result:Math.pow(v,2)};
+    if(a==='pow3')return{result:Math.pow(v,3)};
+    if(a==='log')return v>0?{result:Math.log10(v)}:{error:"Domen xatosi"};
+    if(a==='ln')return v>0?{result:Math.log(v)}:{error:"Domen xatosi"};
+    if(a==='fact'){if(v<0||v!==Math.floor(v))return{error:"Musbat butun son kerak"};let f=1;for(let i=2;i<=v;i++)f*=i;return{result:f};}
+    if(a==='inv')return v!==0?{result:1/v}:{error:"Nolga bo'linmaydi"};
+    if(a==='percent')return{result:v/100};
+    return{error:"Noma'lum amal"};
+  }
+  async function callBackend(action,expression){
+    try{
+      const res=await fetch('calculator.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,expression})});
+      return await res.json();
+    }catch{return action==='evaluate'?jsEval(expression):jsFn(action,expression);}
+  }
+  function fmt(v){
+    if(typeof v!=='number')return String(v);
+    if(!isFinite(v))return v>0?'∞':'-∞';
+    const r=parseFloat(v.toPrecision(12));
+    if(Math.abs(r)>=1e12||(Math.abs(r)<1e-7&&r!==0))return r.toExponential(6);
+    return parseFloat(r.toFixed(10)).toString();
+  }
+  function addHist(e,r){
+    hist.unshift({e,r});if(hist.length>20)hist.pop();
+    document.getElementById('histList').innerHTML=hist.map((h,i)=>`<div class="hist-item" onclick="useHist(${i})"><span class="h-e">${h.e}</span><span class="h-r">${h.r}</span></div>`).join('');
+  }
+  function useHist(i){expr=String(hist[i].r);dExpr.textContent='';setMain(expr);justCalc=false;}
+  async function fn(a){
+    const cur=expr||'0';computing.classList.add('on');
+    const res=await callBackend(a,cur);computing.classList.remove('on');
+    if(res.error){setMain(res.error,true);return;}
+    const f=fmt(res.result);addHist(`${a}(${cur})`,f);
+    expr=String(res.result);dExpr.textContent=`${a}(${cur}) =`;setMain(f);justCalc=true;
+  }
+  async function calc(){
+    if(!expr)return;const orig=expr;computing.classList.add('on');
+    const res=await callBackend('evaluate',expr);computing.classList.remove('on');
+    if(res.error){setMain(res.error,true);return;}
+    const f=fmt(res.result);addHist(orig,f);
+    dHist.textContent=orig+' =';dExpr.textContent='';expr=String(res.result);setMain(f);justCalc=true;
+  }
+  function toggleHist(){document.getElementById('histPanel').classList.toggle('open');}
+  function mStore(){const v=parseFloat(expr||'0');if(!isNaN(v)){memory=v;hasMem=true;document.getElementById('memInd').classList.add('on');}}
+  function mRecall(){if(hasMem){expr=String(memory);dExpr.textContent=expr;setMain(fmt(memory));}}
+  function mClear(){memory=0;hasMem=false;document.getElementById('memInd').classList.remove('on');}
+  function mAdd(){const v=parseFloat(expr||'0');if(!isNaN(v)){memory+=v;hasMem=true;document.getElementById('memInd').classList.add('on');}}
+  function mSub(){const v=parseFloat(expr||'0');if(!isNaN(v)){memory-=v;hasMem=true;document.getElementById('memInd').classList.add('on');}}
+  document.addEventListener('keydown',e=>{
+    if(e.key>='0'&&e.key<='9')ap(e.key);
+    else if(e.key==='.')ap('.');
+    else if(e.key==='+')ap('+');
+    else if(e.key==='-')ap('−');
+    else if(e.key==='*')ap('×');
+    else if(e.key==='/'){e.preventDefault();ap('÷');}
+    else if(e.key==='^')ap('^');
+    else if(e.key==='(')ap('(');
+    else if(e.key===')')ap(')');
+    else if(e.key==='Enter'||e.key==='=')calc();
+    else if(e.key==='Backspace')del();
+    else if(e.key==='Escape')ac();
+  });
+</script>
+</body>
+</html>
