@@ -116,18 +116,33 @@ function jsFn(a, val) {
   if (a === "percent") return { result: v / 100 };
   return { error: "Noma'lum amal" };
 }
+
+function normalizeExpression(expression) {
+  return expression
+    .replace(/×/g, "*")
+    .replace(/x/g, "*")
+    .replace(/÷/g, "/")
+    .replace(/−/g, "-");
+}
+
 async function callBackend(action, expression) {
+  const normalizedExpression = normalizeExpression(expression);
+
   try {
-    const res = await fetch("calculator.php", {
+    const res = await fetch("./calculator.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action, expression }),
+      body: JSON.stringify({
+        action,
+        expression: normalizedExpression,
+      }),
     });
+
     return await res.json();
   } catch {
     return action === "evaluate"
-      ? jsEval(expression)
-      : jsFn(action, expression);
+      ? jsEval(normalizedExpression)
+      : jsFn(action, normalizedExpression);
   }
 }
 function fmt(v) {
